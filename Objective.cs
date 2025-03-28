@@ -1,6 +1,6 @@
 ﻿namespace AI;
 
-internal class Objective
+public class Objective
 {
     public byte[] Input;
     public byte[] Output;

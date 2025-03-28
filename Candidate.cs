@@ -3,5 +3,5 @@
 internal class Candidate
 {
     public byte[] Program;
-    public int Wins;
+    public int ConsecutiveWins;
 }

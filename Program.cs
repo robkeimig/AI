@@ -72,32 +72,39 @@ while (true)
     //In both, the winner's next program overwrites the loser's current program.
     if (candidateAScore > candidateBScore) 
     {
-        candidateA.Wins++;
+        candidateA.ConsecutiveWins++;
+        candidateB.ConsecutiveWins = 0;
         Buffer.BlockCopy(nextProgramA, 0, candidateB.Program, 0, ProgramSize);
+        //Console.Write('A');
     }
     else if (candidateBScore > candidateAScore)
     {
-        candidateB.Wins++;
+        candidateB.ConsecutiveWins++;
+        candidateA.ConsecutiveWins = 0;
         Buffer.BlockCopy(nextProgramB, 0, candidateA.Program, 0, ProgramSize);
+        //Console.Write('B');
     }
     
-    //Unhappy case - No distinguishing behavior. Mutate current program(s):
-    else
-    {
-        if (candidateA.Wins > candidateB.Wins) //Prefer to mutate the program with fewer wins.
-        {
-            candidateB.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-        }
-        else if (candidateB.Wins > candidateA.Wins)
-        {
-            candidateA.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-        }
-        else
-        {
-            candidateA.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-            candidateB.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-        }
-    }
+    ////Unhappy case - No distinguishing behavior. Mutate current program(s):
+    //else
+    //{
+    //    if (candidateA.ConsecutiveWins > candidateB.ConsecutiveWins) //Prefer to mutate the program with fewer consecutive wins.
+    //    {
+    //        candidateB.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
+    //        Console.Write('C');
+    //    }
+    //    else if (candidateB.ConsecutiveWins > candidateA.ConsecutiveWins)
+    //    {
+    //        candidateA.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
+    //        Console.Write('D');
+    //    }
+    //    else
+    //    {
+    //        candidateA.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
+    //        candidateB.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
+    //        Console.Write('E');
+    //    }
+    //}
 
     iterations++;
 }
