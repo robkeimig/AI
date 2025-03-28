@@ -60,7 +60,7 @@ while (true)
     var executionResultA = Machine.Execute(candidateA.Program, nextProgramA, memory, trainingObjective.Input, output, CycleLimit);
     var candidateATrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateAScore = 
-            (Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput) * 0.5f)
+            (1f * Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput) / trainingObjective.Output.Length * 0.5f)
         +   (1f * executionResultA.InputBytesRead / trainingObjective.Input.Length * 0.5f);
 
     Array.Clear(memory);
@@ -69,7 +69,7 @@ while (true)
     var executionResultB = Machine.Execute(candidateB.Program, nextProgramB, memory, trainingObjective.Input, output, CycleLimit);
     var candidateBTrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateBScore =
-            (Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput) * 0.5f)
+            (1f * Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput) / trainingObjective.Output.Length * 0.5f)
         +   (1f * executionResultB.InputBytesRead / trainingObjective.Input.Length * 0.5f);
 
     if (candidateAScore > candidateBScore) 
@@ -105,7 +105,7 @@ void ScoreCandidates()
         var executionResult = Machine.Execute(candidate.Program, nextProgramA, memory, scoringObjective.Input, output, CycleLimit);
         var trimmedOutput = new Span<byte>(output, 0, scoringObjective.Output.Length);
         var candidateScore =
-            (Evaluation.CommonPrefixLength(scoringObjective.Output, trimmedOutput) * 0.5f)
+            (1f * Evaluation.CommonPrefixLength(scoringObjective.Output, trimmedOutput) / scoringObjective.Output.Length * 0.5f)
             + (1f * executionResult.InputBytesRead / scoringObjective.Input.Length * 0.5f);
         total += 1f;
         correct += candidateScore;
