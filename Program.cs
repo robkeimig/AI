@@ -8,17 +8,17 @@ const int MemorySize = 4096;
 const int ContextSize = 4096;
 const int CycleLimit = 50_000;
 
-var random = new Random(RandomSeed);
+var random = new Random(RandomSeed); 
 var webServer = new WebServer();
 var memory = new byte[MemorySize];
 var output = new byte[ContextSize];
-var nextProgramA = new byte[ProgramSize];
-var nextProgramB = new byte[ProgramSize];
+var nextProgram = new byte[ProgramSize];
+var nextProgram2 = new byte[ProgramSize];
 var candidates = new List<Candidate>(PopulationSize);
-var historicalIterations = new List<long>();
+var historicalTournaments = new List<long>();
 var historicalFitness = new List<double>();
 var scoringStopwatch = new Stopwatch();
-var iterations = 0L;
+var tournaments = 0L;
 
 for (int x = 0; x < PopulationSize; x++)
 {
@@ -56,37 +56,37 @@ while (true)
 
     Array.Clear(memory);
     Array.Clear(output);
-    Buffer.BlockCopy(candidateA.Program, 0, nextProgramA, 0, ProgramSize);
-    var executionResultA = Machine.Execute(candidateA.Program, nextProgramA, memory, trainingObjective.Input, output, CycleLimit);
+    Buffer.BlockCopy(candidateA.Program, 0, nextProgram, 0, ProgramSize);
+    var executionResultA = Machine.Execute(candidateA.Program, nextProgram, memory, trainingObjective.Input, output, CycleLimit);
     var candidateATrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateAScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput);
-    
+
     Array.Clear(memory);
     Array.Clear(output);
-    Buffer.BlockCopy(candidateB.Program, 0, nextProgramB, 0, ProgramSize);
-    var executionResultB = Machine.Execute(candidateB.Program, nextProgramB, memory, trainingObjective.Input, output, CycleLimit);
+    Buffer.BlockCopy(candidateB.Program, 0, nextProgram2, 0, ProgramSize);
+    var executionResultB = Machine.Execute(candidateB.Program, nextProgram2, memory, trainingObjective.Input, output, CycleLimit);
     var candidateBTrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateBScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput);
 
-    if (candidateAScore > candidateBScore) 
+    if (candidateAScore > candidateBScore)
     {
         candidateA.ConsecutiveWins++;
         candidateB.ConsecutiveWins = 0;
-        Buffer.BlockCopy(nextProgramA, 0, candidateB.Program, 0, ProgramSize);
+        Buffer.BlockCopy(nextProgram, 0, candidateB.Program, 0, ProgramSize);
     }
     else if (candidateBScore > candidateAScore)
     {
         candidateB.ConsecutiveWins++;
         candidateA.ConsecutiveWins = 0;
-        Buffer.BlockCopy(nextProgramB, 0, candidateA.Program, 0, ProgramSize);
+        Buffer.BlockCopy(nextProgram2, 0, candidateA.Program, 0, ProgramSize);
     }
 
-    iterations++;
+    tournaments++;
 }
 
 void ScoreCandidates()
 {
-    var scoreIterations = 1000;
+    var scoreIterations = 100;
     var total = 0L;
     var correct = 0L;
 
@@ -94,11 +94,10 @@ void ScoreCandidates()
     {
         var candidate = candidates[random.Next(PopulationSize)];
         var scoringObjective = Evaluation.GetObjective(random);
-
         Array.Clear(memory);
         Array.Clear(output);
-        Buffer.BlockCopy(candidate.Program, 0, nextProgramA, 0, ProgramSize);
-        var executionResult = Machine.Execute(candidate.Program, nextProgramA, memory, scoringObjective.Input, output, CycleLimit);
+        Buffer.BlockCopy(candidate.Program, 0, nextProgram, 0, ProgramSize);
+        var executionResult = Machine.Execute(candidate.Program, nextProgram, memory, scoringObjective.Input, output, CycleLimit);
         var trimmedOutput = new Span<byte>(output, 0, scoringObjective.Output.Length);
         total += scoringObjective.Output.Length;
         correct += Evaluation.CommonPrefixLength(scoringObjective.Output, trimmedOutput);
@@ -107,13 +106,13 @@ void ScoreCandidates()
     var score = 1d * correct / total;
     Console.WriteLine(score);
 
-    historicalIterations.Add(iterations);
+    historicalTournaments.Add(tournaments);
     historicalFitness.Add(score);
 
     ScottPlot.Plot myPlot = new();
     myPlot.Axes.SetLimits(top: 1, bottom: 0);
-    myPlot.Add.ScatterPoints(historicalIterations, historicalFitness);
-    myPlot.XLabel("Generations", size: 24);
+    myPlot.Add.ScatterPoints(historicalTournaments, historicalFitness);
+    myPlot.XLabel("Tournaments", size: 24);
     myPlot.YLabel("Fitness", size: 24);
 
     try
