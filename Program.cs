@@ -2,11 +2,11 @@
 using AI;
 
 const int RandomSeed = 12345;
-const int PopulationSize = 100_000;
+const int PopulationSize = 5_000_000;
 const int ProgramSize = 4096;
 const int MemorySize = 4096;
 const int ContextSize = 4096;
-const int CycleLimit = 100_000;
+const int CycleLimit = 50_000;
 
 var random = new Random(RandomSeed); 
 var webServer = new WebServer();
@@ -56,14 +56,14 @@ while (true)
 
     Array.Clear(memory);
     Array.Clear(output);
-    Array.Clear(nextProgram);
+    Buffer.BlockCopy(candidateA.Program, 0, nextProgram, 0, ProgramSize);
     var executionResultA = Machine.Execute(candidateA.Program, nextProgram, memory, trainingObjective.Input, output, CycleLimit);
     var candidateATrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateAScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput);
 
     Array.Clear(memory);
     Array.Clear(output);
-    Array.Clear(nextProgram2);
+    Buffer.BlockCopy(candidateB.Program, 0, nextProgram2, 0, ProgramSize);
     var executionResultB = Machine.Execute(candidateB.Program, nextProgram2, memory, trainingObjective.Input, output, CycleLimit);
     var candidateBTrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateBScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput);
@@ -96,7 +96,7 @@ void ScoreCandidates()
         var scoringObjective = Evaluation.GetObjective(random);
         Array.Clear(memory);
         Array.Clear(output);
-        Array.Clear(nextProgram);
+        Buffer.BlockCopy(candidate.Program, 0, nextProgram, 0, ProgramSize);
         var executionResult = Machine.Execute(candidate.Program, nextProgram, memory, scoringObjective.Input, output, CycleLimit);
         var trimmedOutput = new Span<byte>(output, 0, scoringObjective.Output.Length);
         total += scoringObjective.Output.Length;
