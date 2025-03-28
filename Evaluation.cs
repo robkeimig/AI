@@ -58,7 +58,7 @@ internal class Evaluation
 
     public static Objective GetObjective(Random random)
     {
-        var type = random.Next(2);
+        var type = random.Next(1);
 
         switch (type)
         {
@@ -71,14 +71,14 @@ internal class Evaluation
                     Output = englishToSpanish.Item2
                 };
 
-            case 1:
-                var spanishToEnglish = SpanishToEnglishTranslationData[random.Next(SpanishToEnglishTranslationData.Count)];
+            //case 1:
+            //    var spanishToEnglish = SpanishToEnglishTranslationData[random.Next(SpanishToEnglishTranslationData.Count)];
 
-                return new Objective
-                {
-                    Input = spanishToEnglish.Item1,
-                    Output = spanishToEnglish.Item2
-                };
+            //    return new Objective
+            //    {
+            //        Input = spanishToEnglish.Item1,
+            //        Output = spanishToEnglish.Item2
+            //    };
             default:
                 throw new NotImplementedException();
         }

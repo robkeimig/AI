@@ -2,11 +2,11 @@
 using AI;
 
 const int RandomSeed = 12345;
-const int PopulationSize = 10_000;
+const int PopulationSize = 1_000;
 const int ProgramSize = 4096;
 const int MemorySize = 4096;
 const int ContextSize = 4096;
-const int CycleLimit = 100_000;
+const int CycleLimit = 10_000;
 
 var random = new Random(RandomSeed);
 var webServer = new WebServer();
