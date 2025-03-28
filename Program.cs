@@ -2,11 +2,11 @@
 using AI;
 
 const int RandomSeed = 12345;
-const int PopulationSize = 1_000;
+const int PopulationSize = 100_000;
 const int ProgramSize = 4096;
 const int MemorySize = 4096;
 const int ContextSize = 4096;
-const int CycleLimit = 10_000;
+const int CycleLimit = 50_000;
 
 var random = new Random(RandomSeed);
 var webServer = new WebServer();
@@ -57,54 +57,33 @@ while (true)
     Array.Clear(memory);
     Array.Clear(output);
     Buffer.BlockCopy(candidateA.Program, 0, nextProgramA, 0, ProgramSize);
-    Machine.Execute(candidateA.Program, nextProgramA, memory, trainingObjective.Input, output, CycleLimit);
+    var executionResultA = Machine.Execute(candidateA.Program, nextProgramA, memory, trainingObjective.Input, output, CycleLimit);
     var candidateATrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
-    var candidateAScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput);
+    var candidateAScore = 
+            (Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput) * 0.5f)
+        +   (1f * executionResultA.InputBytesRead / trainingObjective.Input.Length * 0.5f);
 
     Array.Clear(memory);
     Array.Clear(output);
     Buffer.BlockCopy(candidateB.Program, 0, nextProgramB, 0, ProgramSize);
-    Machine.Execute(candidateB.Program, nextProgramB, memory, trainingObjective.Input, output, CycleLimit);
+    var executionResultB = Machine.Execute(candidateB.Program, nextProgramB, memory, trainingObjective.Input, output, CycleLimit);
     var candidateBTrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
-    var candidateBScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput);
+    var candidateBScore =
+            (Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput) * 0.5f)
+        +   (1f * executionResultB.InputBytesRead / trainingObjective.Input.Length * 0.5f);
 
-    //Happy cases - Definitive difference in performance between candidates.
-    //In both, the winner's next program overwrites the loser's current program.
     if (candidateAScore > candidateBScore) 
     {
         candidateA.ConsecutiveWins++;
         candidateB.ConsecutiveWins = 0;
         Buffer.BlockCopy(nextProgramA, 0, candidateB.Program, 0, ProgramSize);
-        //Console.Write('A');
     }
     else if (candidateBScore > candidateAScore)
     {
         candidateB.ConsecutiveWins++;
         candidateA.ConsecutiveWins = 0;
         Buffer.BlockCopy(nextProgramB, 0, candidateA.Program, 0, ProgramSize);
-        //Console.Write('B');
     }
-    
-    ////Unhappy case - No distinguishing behavior. Mutate current program(s):
-    //else
-    //{
-    //    if (candidateA.ConsecutiveWins > candidateB.ConsecutiveWins) //Prefer to mutate the program with fewer consecutive wins.
-    //    {
-    //        candidateB.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-    //        Console.Write('C');
-    //    }
-    //    else if (candidateB.ConsecutiveWins > candidateA.ConsecutiveWins)
-    //    {
-    //        candidateA.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-    //        Console.Write('D');
-    //    }
-    //    else
-    //    {
-    //        candidateA.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-    //        candidateB.Program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-    //        Console.Write('E');
-    //    }
-    //}
 
     iterations++;
 }
@@ -123,11 +102,13 @@ void ScoreCandidates()
         Array.Clear(memory);
         Array.Clear(output);
         Buffer.BlockCopy(candidate.Program, 0, nextProgramA, 0, ProgramSize);
-        Machine.Execute(candidate.Program, nextProgramA, memory, scoringObjective.Input, output, CycleLimit);
+        var executionResult = Machine.Execute(candidate.Program, nextProgramA, memory, scoringObjective.Input, output, CycleLimit);
         var trimmedOutput = new Span<byte>(output, 0, scoringObjective.Output.Length);
-        var cpl = Evaluation.CommonPrefixLength(scoringObjective.Output, trimmedOutput);
-        total += trimmedOutput.Length;
-        correct += cpl;
+        var candidateScore =
+            (Evaluation.CommonPrefixLength(scoringObjective.Output, trimmedOutput) * 0.5f)
+            + (1f * executionResult.InputBytesRead / scoringObjective.Input.Length * 0.5f);
+        total += 1f;
+        correct += candidateScore;
     }
 
     var score = 1d * correct / total;

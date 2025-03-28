@@ -30,7 +30,13 @@ public class Machine
 
     public const byte MaximumInstruction = 17;
 
-    public static void Execute(
+    public struct ExecutionResult
+    {
+        public long Cycles;
+        public long InputBytesRead;
+    }
+
+    public static ExecutionResult Execute(
         Span<byte> program, 
         Span<byte> nextProgram,
         Span<byte> memory,
@@ -105,12 +111,22 @@ public class Machine
                     programCounter = (programCounter - 256 + program.Length) % program.Length;
                     break;
                 case Return:
-                   return;
+                   return new ExecutionResult
+                   {
+                       Cycles = cycles,
+                       InputBytesRead = inputPointer
+                   };
             }
 
             cycles++;
             programCounter++;
             programCounter %= program.Length;
         }
+
+        return new ExecutionResult
+        {
+            Cycles = cycles,
+            InputBytesRead = inputPointer
+        };
     }
 }
