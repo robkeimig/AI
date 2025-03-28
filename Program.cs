@@ -2,7 +2,7 @@
 using AI;
 
 const int RandomSeed = 12345;
-const int PopulationSize = 5_000_000;
+const int PopulationSize = 100_000;
 const int ProgramSize = 4096;
 const int MemorySize = 4096;
 const int ContextSize = 4096;
