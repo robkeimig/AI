@@ -96,10 +96,10 @@ void Mutate(byte[] program)
 double NormalizedScore(int inputLength, int inputBytesRead, Span<byte> expectedOutput, Span<byte> output, int outputBytesWritten)
 {
     var cpl = 1f * Evaluation.CommonPrefixLength(expectedOutput, output) / output.Length;
-    var hd = 1f - Evaluation.HammingDistance(expectedOutput, output);
+    //var hd = 1f - Evaluation.HammingDistance(expectedOutput, output);
     var inputScore = 1f * inputBytesRead / inputLength;
     var outputScore = Math.Min(1f * outputBytesWritten / output.Length, 1f);
-    return hd * .1f + cpl * .7f + inputScore * .1f + outputScore * .1f;
+    return /*hd * .4f + */cpl * .8f + inputScore * .1f + outputScore * .1f;
 }
 
 void ScoreCandidates()
