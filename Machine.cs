@@ -30,7 +30,8 @@ public class Machine
     public struct ExecutionResult
     {
         public long Cycles;
-        public long InputBytesRead;
+        public int InputBytesRead;
+        public int OutputBytesWritten;
     }
 
     public static ExecutionResult Execute(
@@ -99,7 +100,8 @@ public class Machine
                    return new ExecutionResult
                    {
                        Cycles = cycles,
-                       InputBytesRead = inputPointer
+                       InputBytesRead = inputPointer,
+                       OutputBytesWritten = outputPointer,
                    };
             }
 
@@ -111,7 +113,8 @@ public class Machine
         return new ExecutionResult
         {
             Cycles = cycles,
-            InputBytesRead = inputPointer
+            InputBytesRead = inputPointer,
+            OutputBytesWritten = outputPointer,
         };
     }
 }

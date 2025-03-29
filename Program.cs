@@ -56,13 +56,13 @@ while (true)
     Array.Clear(output);
     var executionResultA = Machine.Execute(candidateA.Program, memory, trainingObjective.Input, output, CycleLimit);
     var candidateATrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
-    var candidateAScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput);
+    var candidateAScore = NormalizedScore(trainingObjective.Input.Length, executionResultA.InputBytesRead, trainingObjective.Output, candidateATrimmedOutput, executionResultA.OutputBytesWritten);
 
     Array.Clear(memory);
     Array.Clear(output);
     var executionResultB = Machine.Execute(candidateB.Program, memory, trainingObjective.Input, output, CycleLimit);
     var candidateBTrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
-    var candidateBScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput);
+    var candidateBScore = NormalizedScore(trainingObjective.Input.Length, executionResultB.InputBytesRead, trainingObjective.Output, candidateBTrimmedOutput, executionResultB.OutputBytesWritten);
 
     if (candidateAScore > candidateBScore)
     {
@@ -93,11 +93,19 @@ void Mutate(byte[] program)
     program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
 }
 
+double NormalizedScore(int inputLength, int inputBytesRead, Span<byte> expectedOutput, Span<byte> output, int outputBytesWritten)
+{
+    var cpl = 1f * Evaluation.CommonPrefixLength(expectedOutput, output) / output.Length;
+    var inputScore = 1f * inputBytesRead / inputLength;
+    var outputScore = Math.Min(1f * outputBytesWritten / output.Length, 1f);
+    return cpl * .8f + inputScore * .1f + outputScore * .1f;
+}
+
 void ScoreCandidates()
 {
     var scoreIterations = 100;
-    var total = 0L;
-    var correct = 0L;
+    var total = 0d;
+    var correct = 0d;
 
     for (int x = 0; x < scoreIterations; x++)
     {
@@ -107,8 +115,8 @@ void ScoreCandidates()
         Array.Clear(output);
         var executionResult = Machine.Execute(candidate.Program, memory, scoringObjective.Input, output, CycleLimit);
         var trimmedOutput = new Span<byte>(output, 0, scoringObjective.Output.Length);
-        total += scoringObjective.Output.Length;
-        correct += Evaluation.CommonPrefixLength(scoringObjective.Output, trimmedOutput);
+        total += 1f;
+        correct += NormalizedScore(scoringObjective.Input.Length, executionResult.InputBytesRead, scoringObjective.Output, trimmedOutput, executionResult.OutputBytesWritten);
     }
 
     var score = 1d * correct / total;
