@@ -6,7 +6,7 @@ const int PopulationSize = 10_000;
 const int ProgramSize = 10_000;
 const int MemorySize = 4096;
 const int ContextSize = 4096;
-const int CycleLimit = 100_000;
+const int CycleLimit = 1_000_000;
 
 var random = new Random(RandomSeed); 
 var webServer = new WebServer();
@@ -96,9 +96,10 @@ void Mutate(byte[] program)
 double NormalizedScore(int inputLength, int inputBytesRead, Span<byte> expectedOutput, Span<byte> output, int outputBytesWritten)
 {
     var cpl = 1f * Evaluation.CommonPrefixLength(expectedOutput, output) / output.Length;
+    var hd = 1f - Evaluation.HammingDistance(expectedOutput, output);
     var inputScore = 1f * inputBytesRead / inputLength;
     var outputScore = Math.Min(1f * outputBytesWritten / output.Length, 1f);
-    return cpl * .8f + inputScore * .1f + outputScore * .1f;
+    return hd * .1f + cpl * .7f + inputScore * .1f + outputScore * .1f;
 }
 
 void ScoreCandidates()

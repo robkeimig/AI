@@ -36,6 +36,35 @@ internal class Evaluation
         }
     }
 
+    public static double HammingDistance(Span<byte> array1, Span<byte> array2)
+    {
+        static int CountBits(byte value)
+        {
+            int count = 0;
+            while (value != 0)
+            {
+                count += value & 1;
+                value >>= 1;
+            }
+            return count;
+        }
+
+        if (array1.Length != array2.Length)
+        {
+            throw new ArgumentException("Byte arrays must be of equal length.");
+        }
+
+        int hammingDistance = 0;
+
+        for (int i = 0; i < array1.Length; i++)
+        {
+            byte xorResult = (byte)(array1[i] ^ array2[i]);
+            hammingDistance += CountBits(xorResult);
+        }
+
+        return (double)hammingDistance / (array1.Length * 8);
+    }
+
     public static int CommonPrefixLength(Span<byte> a, Span<byte> b)
     {
         int length = Math.Min(a.Length, b.Length);
