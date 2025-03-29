@@ -2,7 +2,7 @@
 using AI;
 
 const int RandomSeed = 12345;
-const int PopulationSize = 1_000_000;
+const int PopulationSize = 10_000;
 const int ProgramSize = 10_000;
 const int MemorySize = 4096;
 const int ContextSize = 4096;
@@ -90,10 +90,7 @@ while (true)
 
 void Mutate(byte[] program)
 {
-    for(int x = 0; x < random.Next(Machine.MaximumInstruction); x++)
-    {
-        program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
-    }
+    program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
 }
 
 void ScoreCandidates()
