@@ -90,7 +90,7 @@ while (true)
 
 void Mutate(byte[] program)
 {
-    for(int x = 0; x < tournaments % 100; x++)
+    for(int x = 0; x < random.Next(Machine.MaximumInstruction); x++)
     {
         program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
     }
