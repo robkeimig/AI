@@ -4,31 +4,28 @@ public class Machine
 {
     //Pointer manipulation
     const byte IncrementMemoryPointer = 1;
-    const byte IncrementNextProgramPointer = 2;
     
     //Information manipulation
-    const byte IncrementMemoryValue = 3;
+    const byte IncrementMemoryValue = 2;
 
     //Communication
-    const byte ReadInput = 4;
-    const byte WriteOutput = 5;
-    const byte CopyNextProgramToMemory = 6;
-    const byte CopyMemoryToNextProgram = 7;
+    const byte ReadInput = 3;
+    const byte WriteOutput = 4;
 
     //Control flow
-    const byte JumpForward4 = 8;
-    const byte JumpBackward4 = 9;
-    const byte JumpForward16 = 10;
-    const byte JumpBackward16 = 11;
-    const byte JumpForward64 = 12;
-    const byte JumpBackward64 = 13;
-    const byte JumpForward256 = 14;
-    const byte JumpBackward256 = 15;
+    const byte JumpForward4 = 5;
+    const byte JumpBackward4 = 6;
+    const byte JumpForward16 = 7;
+    const byte JumpBackward16 = 8;
+    const byte JumpForward64 = 9;
+    const byte JumpBackward64 = 10;
+    const byte JumpForward256 = 11;
+    const byte JumpBackward256 = 12;
     
     //Halting
-    const byte Return = 16;
+    const byte Return = 13;
 
-    public const byte MaximumInstruction = 17;
+    public const byte MaximumInstruction = 14;
 
     public struct ExecutionResult
     {
@@ -38,14 +35,12 @@ public class Machine
 
     public static ExecutionResult Execute(
         Span<byte> program, 
-        Span<byte> nextProgram,
         Span<byte> memory,
         Span<byte> input,
         Span<byte> output,
         long cycleLimit)
     {
         var programCounter = 0;
-        var nextProgramPointer = 0;
         var memoryPointer = 0;
         var inputPointer = 0;
         var outputPointer = 0;
@@ -61,10 +56,6 @@ public class Machine
                     memoryPointer++;
                     memoryPointer %= memory.Length;
                     break;
-                case IncrementNextProgramPointer:
-                    nextProgramPointer++;
-                    nextProgramPointer %= nextProgram.Length;
-                    break;
                 case IncrementMemoryValue:
                     memory[memoryPointer]++;
                     break;
@@ -79,12 +70,6 @@ public class Machine
                     {
                         output[outputPointer++] = memory[memoryPointer];
                     }
-                    break;
-                case CopyMemoryToNextProgram:
-                    nextProgram[nextProgramPointer] = memory[memoryPointer];
-                    break;
-                case CopyNextProgramToMemory:
-                    memory[memoryPointer] = nextProgram[nextProgramPointer];
                     break;
                 case JumpForward4:
                     programCounter += 4;

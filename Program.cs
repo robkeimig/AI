@@ -2,18 +2,16 @@
 using AI;
 
 const int RandomSeed = 12345;
-const int PopulationSize = 100_000;
-const int ProgramSize = 4096;
+const int PopulationSize = 1_000_000;
+const int ProgramSize = 10_000;
 const int MemorySize = 4096;
 const int ContextSize = 4096;
-const int CycleLimit = 50_000;
+const int CycleLimit = 100_000;
 
 var random = new Random(RandomSeed); 
 var webServer = new WebServer();
 var memory = new byte[MemorySize];
 var output = new byte[ContextSize];
-var nextProgram = new byte[ProgramSize];
-var nextProgram2 = new byte[ProgramSize];
 var candidates = new List<Candidate>(PopulationSize);
 var historicalTournaments = new List<long>();
 var historicalFitness = new List<double>();
@@ -56,15 +54,13 @@ while (true)
 
     Array.Clear(memory);
     Array.Clear(output);
-    Buffer.BlockCopy(candidateA.Program, 0, nextProgram, 0, ProgramSize);
-    var executionResultA = Machine.Execute(candidateA.Program, nextProgram, memory, trainingObjective.Input, output, CycleLimit);
+    var executionResultA = Machine.Execute(candidateA.Program, memory, trainingObjective.Input, output, CycleLimit);
     var candidateATrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateAScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateATrimmedOutput);
 
     Array.Clear(memory);
     Array.Clear(output);
-    Buffer.BlockCopy(candidateB.Program, 0, nextProgram2, 0, ProgramSize);
-    var executionResultB = Machine.Execute(candidateB.Program, nextProgram2, memory, trainingObjective.Input, output, CycleLimit);
+    var executionResultB = Machine.Execute(candidateB.Program, memory, trainingObjective.Input, output, CycleLimit);
     var candidateBTrimmedOutput = new Span<byte>(output, 0, trainingObjective.Output.Length);
     var candidateBScore = Evaluation.CommonPrefixLength(trainingObjective.Output, candidateBTrimmedOutput);
 
@@ -72,16 +68,32 @@ while (true)
     {
         candidateA.ConsecutiveWins++;
         candidateB.ConsecutiveWins = 0;
-        Buffer.BlockCopy(nextProgram, 0, candidateB.Program, 0, ProgramSize);
+        Buffer.BlockCopy(candidateA.Program, 0, candidateB.Program, 0, ProgramSize);
+        Mutate(candidateB.Program);
+        
     }
     else if (candidateBScore > candidateAScore)
     {
         candidateB.ConsecutiveWins++;
         candidateA.ConsecutiveWins = 0;
-        Buffer.BlockCopy(nextProgram2, 0, candidateA.Program, 0, ProgramSize);
+        Buffer.BlockCopy(candidateB.Program, 0, candidateA.Program, 0, ProgramSize);
+        Mutate(candidateA.Program);
+    }
+    else
+    {
+        Mutate(candidateA.Program);
+        Mutate(candidateB.Program);
     }
 
     tournaments++;
+}
+
+void Mutate(byte[] program)
+{
+    for(int x = 0; x < tournaments % 100; x++)
+    {
+        program[random.Next(ProgramSize)] = (byte)random.Next(Machine.MaximumInstruction);
+    }
 }
 
 void ScoreCandidates()
@@ -96,8 +108,7 @@ void ScoreCandidates()
         var scoringObjective = Evaluation.GetObjective(random);
         Array.Clear(memory);
         Array.Clear(output);
-        Buffer.BlockCopy(candidate.Program, 0, nextProgram, 0, ProgramSize);
-        var executionResult = Machine.Execute(candidate.Program, nextProgram, memory, scoringObjective.Input, output, CycleLimit);
+        var executionResult = Machine.Execute(candidate.Program, memory, scoringObjective.Input, output, CycleLimit);
         var trimmedOutput = new Span<byte>(output, 0, scoringObjective.Output.Length);
         total += scoringObjective.Output.Length;
         correct += Evaluation.CommonPrefixLength(scoringObjective.Output, trimmedOutput);
